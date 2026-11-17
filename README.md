@@ -7,7 +7,7 @@
         - M1 文件采信：`/api/intake/run`
 - M2 编码判定：`/api/encoding/detect`
 - M3 字段保形：`/api/fields/normalize`
-- M4 内容归一：`/api/content/normalize`
+- M4 内容归一：`/api/content/normalize`（按方案归一）、`/api/content/revise`（人工修订）、`/api/content/undo`（按操作选择性撤销）、`/api/content/adjudicate`（冲突逐条裁决）、`/api/content/state`（档案现状）
 - M5 索引对账：`/api/reconcile`
 - M6 批次导出：`/api/export/evidence.csv`
 

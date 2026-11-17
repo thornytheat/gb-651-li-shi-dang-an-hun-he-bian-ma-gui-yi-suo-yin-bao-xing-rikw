@@ -29,6 +29,11 @@
 | TRAP-09 | 真实边界输入 | 朴素处理会错分 | 保留证据并稳定裁决 | `app/modules/m2_encoding/core.py` | `tests/test_m2_encoding.py::test_trap_2` |
 | TRAP-16 | 真实边界输入 | 朴素处理会错分 | 保留证据并稳定裁决 | `app/modules/m3_fields/core.py` | `tests/test_m3_fields.py::test_trap_2` |
 | TRAP-18 | 真实边界输入 | 朴素处理会错分 | 保留证据并稳定裁决 | `app/modules/m4_content/core.py` | `tests/test_m4_content.py::test_trap_2` |
+| TRAP-19 | 整批回滚抹掉馆员后续修订 | 按值比较判无修订 | 版本事件判定：改回相同字面也算后续修订，冲突保留现文 | `app/modules/m4_content/service.py` | `tests/test_m4_undo.py::test_same_literal_revision_still_counts` |
+| TRAP-20 | 撤销中断后重跑重复补偿 | 全有或全无事务 | 撤销条目逐行独立事务，重入从 pending 续跑 | `app/modules/m4_content/service.py` | `tests/test_m4_undo.py::test_undo_resumes_after_crash_without_duplicate_compensation` |
+| TRAP-21 | 撤销覆盖并发修订 | 先读后写无校验 | 行级 compare-and-set，版本错位转冲突 | `app/modules/m4_content/service.py` | `tests/test_m4_undo.py::test_undo_and_revisions_race_without_lost_updates` |
+| TRAP-22 | 过期裁决覆盖新修订 | 裁决不校验时点 | 裁决令牌须等于行当前版本，否则 STALE_VERSION | `app/modules/m4_content/service.py` | `tests/test_m4_undo.py::test_stale_adjudication_rejected` |
+| TRAP-23 | 同档案两次归一撤销较早操作回滚较晚结果 | 直接恢复较早原文 | 较早操作的撤销对已被较晚操作触碰的行转冲突保留现文 | `app/modules/m4_content/service.py` | `tests/test_m4_undo.py::test_two_normalizes_then_undo_earlier_keeps_later_result` |
 
         ## 对账规则
 

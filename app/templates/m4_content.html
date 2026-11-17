@@ -1,4 +1,24 @@
 {% extends "base.html" %}{% block content %}
-<div class="grid module-4"><section class="panel panel--primary"><div class="panel__head"><h2>内容归一记录</h2><span class="panel__meta">M4 · {{ data.status|default('READY') }}</span></div><div class="panel__body panel__body--scroll"><table class="ledger"><thead><tr><th>字段</th><th>值</th><th>证据</th></tr></thead><tbody>{% for key, value in data.items() %}<tr><td>{{ key }}</td><td class="num">{{ value }}</td><td>R{{ loop.index }}</td></tr>{% endfor %}</tbody></table></div></section>
-<div class="stack"><section class="panel"><div class="panel__head"><h2>原因码</h2><span class="panel__meta">{{ data.reason|default('OK') }}</span></div><div class="panel__body bars"><i style="--v:56%"></i><i style="--v:53%"></i></div></section><section class="panel"><div class="panel__head"><h2>本次动作</h2><span class="panel__meta">/api/content/normalize</span></div><div class="panel__body"><button class="btn btn--primary" data-endpoint="/api/content/normalize">运行 内容归一</button><pre class="result">等待运行</pre></div></section></div></div>
+<div class="grid module-4">
+<section class="panel panel--primary"><div class="panel__head"><h2>档案内容行</h2><span class="panel__meta">M4 · 档号+行号逐字关联 · 共 {{ data.rows|length }} 行</span></div>
+<div class="panel__body panel__body--scroll"><table class="ledger"><thead><tr><th>档号</th><th>行号</th><th>现文</th><th>版本</th><th>最近来源</th><th>人工修订</th></tr></thead><tbody>
+{% for r in data.rows %}<tr><td class="num">{{ r.archive_id }}</td><td class="num">{{ r.line_no }}</td><td class="cell-pre">{{ r.current_value }}</td><td class="num">v{{ r.version }}</td><td>{{ r.updated_by }}</td><td class="m4-rev"><input class="m4-rev-input" value="{{ r.current_value }}"><button class="btn m4-rev-save" data-aid="{{ r.archive_id }}" data-lno="{{ r.line_no }}" data-ver="{{ r.version }}">保存修订</button></td></tr>{% endfor %}
+</tbody></table></div></section>
+<div class="stack">
+<section class="panel"><div class="panel__head"><h2>归一操作</h2><span class="panel__meta">/api/content/normalize</span></div><div class="panel__body">
+<div class="m4-run"><select id="m4-profile"><option value="standard">标准（全半角＋空白＋换行）</option><option value="width">仅全半角</option><option value="space">仅空白与换行</option></select><button class="btn btn--primary" id="m4-run">运行归一</button></div>
+<table class="ledger"><thead><tr><th>操作</th><th>方案</th><th>变更数</th><th>状态</th><th>撤销</th></tr></thead><tbody>
+{% for op in data.ops %}<tr><td>{{ op.op_id }}</td><td>{{ op.profile }}</td><td class="num">{{ op.change_count }}</td><td>{{ {'applied':'已应用','undo_conflicts':'撤销待裁决','undone':'已撤销'}[op.status] }}</td><td>{% if op.status == 'applied' %}<button class="btn m4-undo" data-op="{{ op.op_id }}">撤销该操作</button>{% else %}—{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="panel"><div class="panel__head"><h2>撤销与逐条裁决</h2><span class="panel__meta">冲突保留现文待裁决</span></div><div class="panel__body panel__body--scroll">
+{% for u in data.undos %}<div class="m4-undo-head">{{ u.undo_id }} ← {{ u.op_id }} · {{ {'running':'进行中','conflicts_open':'待裁决','completed':'已完成','closed':'已结案'}[u.status] }}</div>
+<table class="ledger"><thead><tr><th>档号</th><th>行号</th><th>应恢复原文</th><th>条目状态</th><th>裁决</th></tr></thead><tbody>
+{% for it in data.undo_items if it.undo_id == u.undo_id %}<tr><td class="num">{{ it.archive_id }}</td><td class="num">{{ it.line_no }}</td><td class="cell-pre">{{ it.planned_value }}</td><td>{{ {'pending':'待处理','restored':'已恢复原文','conflict':'冲突待裁决','adjudicated_keep':'裁决保留现文','adjudicated_restore':'裁决恢复原文'}[it.status] }}</td>
+<td>{% if it.status == 'conflict' %}<button class="btn m4-adj" data-undo="{{ it.undo_id }}" data-aid="{{ it.archive_id }}" data-lno="{{ it.line_no }}" data-ver="{{ it.current_version }}" data-decision="keep">保留现文</button><button class="btn m4-adj" data-undo="{{ it.undo_id }}" data-aid="{{ it.archive_id }}" data-lno="{{ it.line_no }}" data-ver="{{ it.current_version }}" data-decision="restore">恢复原文</button>{% else %}—{% endif %}</td></tr>{% endfor %}
+</tbody></table>{% endfor %}
+{% if not data.undos %}<p class="m4-empty">尚无撤销操作</p>{% endif %}
+</div></section>
+<section class="panel"><div class="panel__head"><h2>本次动作</h2><span class="panel__meta">结果</span></div><div class="panel__body"><pre class="result" id="m4-result">等待运行</pre></div></section>
+</div></div>
+<script src="/static/content.js"></script>
 {% endblock %}
